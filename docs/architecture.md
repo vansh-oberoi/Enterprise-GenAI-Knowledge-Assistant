@@ -5,8 +5,9 @@
 2. Text is chunked with overlap and embedded using a Sentence Transformers model.
 3. Chunks and metadata are persisted in ChromaDB.
 4. Query text is embedded and top-k chunks are retrieved using cosine distance.
-5. The generation layer sends retrieved evidence to a configurable OpenAI-compatible chat API.
-6. The response includes source labels and evidence excerpts; application logs capture failures and latency.
+5. The retrieval-only endpoint can return ranked evidence without invoking a language model, allowing retrieval to be evaluated independently.
+6. For answer generation, the generation layer sends retrieved evidence to a configurable OpenAI-compatible chat API.
+7. The query response includes source labels and evidence excerpts; application logs capture failures and latency.
 
 ## Trust boundaries
 - Uploaded files are untrusted input.
@@ -19,5 +20,5 @@
 - No authentication or tenant isolation yet.
 - No OCR for scanned PDFs.
 - CSV is indexed row-wise; vector retrieval is not a substitute for exact SQL analytics.
-- Citation labels identify retrieved chunks, but citation correctness and faithfulness need automated and human evaluation.
+- The retrieval evaluator reports source-level Hit@k, Recall@k, and MRR@k against expected-source labels. Citation labels identify retrieved chunks, but citation correctness and answer faithfulness still need separate automated and human evaluation.
 - No production-grade authorization, rate limiting, or persistent observability backend.
