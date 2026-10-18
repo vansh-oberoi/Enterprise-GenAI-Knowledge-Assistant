@@ -18,7 +18,7 @@ jobs:
           python-version: '3.12'
           cache: pip
       - name: Install test dependencies
-        run: python -m pip install --upgrade pip && pip install pytest pandas pymupdf python-docx
+        run: python -m pip install --upgrade pip && pip install pytest pandas pymupdf python-docx python-dotenv
       - name: Run unit tests
         env:
           PYTHONPATH: ${{ github.workspace }}
