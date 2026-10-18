@@ -1,11 +1,13 @@
-import chromadb
-from sentence_transformers import SentenceTransformer
 from .config import CHROMA_DIR, EMBEDDING_MODEL
 
 COLLECTION_NAME = 'enterprise_knowledge'
 
 class KnowledgeStore:
     def __init__(self):
+        # Load heavyweight retrieval dependencies only when a store is instantiated.
+        import chromadb
+        from sentence_transformers import SentenceTransformer
+
         self.client = chromadb.PersistentClient(path=CHROMA_DIR)
         self.collection = self.client.get_or_create_collection(
             name=COLLECTION_NAME, metadata={'hnsw:space': 'cosine'}
