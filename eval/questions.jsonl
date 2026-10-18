@@ -1,0 +1,2 @@
+{"question":"What is the purpose of the sample policy?","expected_sources":["sample_policy.txt"]}
+{"question":"What should the assistant do when evidence is insufficient?","expected_sources":["sample_policy.txt"]}
