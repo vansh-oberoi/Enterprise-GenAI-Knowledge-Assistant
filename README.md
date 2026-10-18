@@ -8,6 +8,7 @@ A focused MVP for enterprise document Q&A using retrieval-augmented generation (
 - Chunk text with configurable overlap.
 - Generate embeddings with Sentence Transformers and store vectors in ChromaDB.
 - Retrieve relevant passages and generate evidence-grounded answers with source labels.
+- Run generation locally with Ollama, without a paid hosted inference API; other OpenAI-compatible providers can be configured.
 - Provide a FastAPI API, lightweight Streamlit UI, basic metrics, and structured logs.
 - Run a baseline retrieval evaluation against a small JSONL test set.
 
@@ -22,9 +23,28 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` in `.env` to an approved OpenAI-compatible chat API provider. Never commit `.env` or secrets. The embedding model is downloaded on first use.
+### Local LLM with Ollama (recommended for development)
 
-Run the API in one terminal:
+1. Install and open [Ollama](https://ollama.com/download) for macOS.
+2. In a terminal, download the recommended small model:
+
+   ```bash
+   ollama pull qwen2.5:3b
+   ```
+
+3. Confirm the model is available:
+
+   ```bash
+   ollama list
+   ```
+
+4. The default configuration uses Ollama's OpenAI-compatible endpoint at `http://localhost:11434/v1`, the local model `qwen2.5:3b`, and the placeholder API key `ollama`. Ollama does not require a hosted API key for local inference. Keep Ollama running while using the app.
+
+The configuration can be overridden in `.env`. For a hosted OpenAI-compatible provider, set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to that provider's values. Never commit `.env` or real secrets. The embedding model is downloaded on first use. On an 8 GB Mac, close memory-heavy apps while the local model is running; if performance or memory pressure is poor, choose a smaller Ollama model.
+
+## Run the application
+
+Start the API in one terminal:
 
 ```bash
 uvicorn app.api:app --reload
