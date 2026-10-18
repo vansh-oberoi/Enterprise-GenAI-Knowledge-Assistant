@@ -9,10 +9,11 @@ If evidence is insufficient, say you do not have enough information.
 Cite supported claims with source labels such as [S1]. Never invent facts or citations."""
 
 def generate_answer(question: str, hits: list[dict]) -> str:
-    if not LLM_BASE_URL or not LLM_API_KEY or not LLM_MODEL:
-        raise RuntimeError('Configure LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL in .env.')
+    # Refusal on empty retrieval is deterministic and must not require an LLM provider.
     if not hits:
         return "I couldn't find relevant evidence in the indexed documents, so I can't answer reliably."
+    if not LLM_BASE_URL or not LLM_API_KEY or not LLM_MODEL:
+        raise RuntimeError('Configure LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL in .env.')
     evidence = []
     for index, hit in enumerate(hits, start=1):
         metadata = hit.get('metadata', {})
