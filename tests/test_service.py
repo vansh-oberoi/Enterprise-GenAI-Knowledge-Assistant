@@ -79,3 +79,16 @@ def test_empty_retrieval_refuses_without_llm_credentials(monkeypatch):
     assert result["sources"] == []
     assert service.METRICS["queries"] == 1
     assert service.METRICS["errors"] == 0
+
+def test_retrieve_evidence_does_not_invoke_generation(monkeypatch):
+    hits = [{"text": "Security policy evidence.", "metadata": {"source": "security.md"}, "distance": 0.2}]
+    monkeypatch.setattr(service, "get_store", lambda: FakeStore(hits))
+    monkeypatch.setattr(
+        service, "generate_answer",
+        lambda *args: pytest.fail("retrieval-only path must not invoke generation"),
+    )
+
+    result = service.retrieve_evidence("What is the security policy?", top_k=1)
+
+    assert result == hits
+
