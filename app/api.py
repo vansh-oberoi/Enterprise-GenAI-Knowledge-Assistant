@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel, Field
 from .config import LOG_LEVEL
-from .service import ingest_documents, answer_question, METRICS
+from .service import ingest_documents, retrieve_evidence, answer_question, METRICS
 
 logging.basicConfig(level=getattr(logging, LOG_LEVEL.upper(), logging.INFO), format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger = logging.getLogger(__name__)
@@ -38,6 +38,25 @@ async def ingest(files: list[UploadFile] = File(...)):
     except Exception as exc:
         logger.exception('ingestion_failed')
         raise HTTPException(status_code=500, detail='Document ingestion failed.') from exc
+
+@app.post('/retrieve')
+def retrieve(request: QueryRequest):
+    """Return ranked evidence without calling the configured LLM provider."""
+    try:
+        hits = retrieve_evidence(request.question, request.top_k)
+        sources = []
+        for index, hit in enumerate(hits, start=1):
+            metadata = hit.get('metadata', {})
+            sources.append({
+                'citation': f'S{index}', 'source': metadata.get('source', 'unknown'),
+                'page': metadata.get('page'), 'row': metadata.get('row'),
+                'distance': hit.get('distance'), 'excerpt': hit['text'][:500]
+            })
+        return {'sources': sources}
+    except Exception as exc:
+        logger.exception('retrieval_failed')
+        raise HTTPException(status_code=500, detail='Retrieval failed. Check server logs.') from exc
+
 
 @app.post('/query')
 def query(request: QueryRequest):
