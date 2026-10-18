@@ -42,7 +42,8 @@ Open the Streamlit URL, upload documents, click **Index documents**, then ask qu
 - `GET /health` — health check.
 - `GET /metrics` — basic in-process counters and average query latency.
 - `POST /ingest` — multipart upload using one or more `files` fields.
-- `POST /query` — JSON body such as `{"question":"What is the policy?","top_k":5}`.
+- `POST /retrieve` — returns ranked evidence without calling the LLM; useful for retrieval evaluation.
+- `POST /query` — JSON body such as `{"question":"What is the policy?","top_k":5}`; returns a generated answer and retrieved sources.
 
 FastAPI's interactive API docs are available at `/docs` while the server is running.
 
@@ -54,13 +55,13 @@ Run unit tests:
 pytest -q
 ```
 
-For the evaluation runner, first start the API, index `data/sample_policy.txt` through the UI or API, then run:
+For retrieval evaluation, start the API and index the documents referenced in `eval/questions.jsonl` through the UI or API. Then run:
 
 ```bash
 python -m eval.run_eval
 ```
 
-Update `eval/questions.jsonl` to reflect the documents used in your evaluation. The baseline measures expected-source retrieval hit rate; it does not independently prove answer faithfulness or citation correctness.
+Update `eval/questions.jsonl` to reflect the documents used in your evaluation. The runner calls `/retrieve` (no LLM credentials required) and reports source-level Hit@k, Recall@k, and MRR@k. These metrics depend on the expected-source labels in the small benchmark; they do not prove answer faithfulness or citation correctness.
 
 ## Architecture and limitations
 See [`docs/architecture.md`](docs/architecture.md). This is an MVP, not production-ready enterprise software. Before real deployment, add authentication, document-level access control, tenant isolation, rate limiting, durable metrics, OCR where needed, stronger adversarial tests, and an approved data-handling policy. CSV is indexed row-wise; use SQL/tool-based execution for exact structured analytics.
