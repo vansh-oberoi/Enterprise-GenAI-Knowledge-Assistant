@@ -1,13 +1,66 @@
 # Enterprise GenAI Knowledge Assistant
 
-An enterprise-oriented retrieval-augmented generation (RAG) assistant for document-grounded Q&A, citations, evaluation, guardrails, and observability.
+A focused MVP for enterprise document Q&A using retrieval-augmented generation (RAG), source citations, a FastAPI backend, Streamlit UI, baseline evaluation, guardrails, and observability.
 
-## Project goals
-- Ingest structured and unstructured documents.
-- Index document chunks using embeddings and metadata.
-- Retrieve evidence and generate grounded answers with citations.
-- Expose a FastAPI service and lightweight Streamlit UI.
-- Evaluate retrieval/answer quality and log latency, token usage, and failures.
+## Features
+- Ingest PDF, DOCX, TXT, Markdown, and CSV files.
+- Preserve source metadata such as filename, PDF page, and CSV row.
+- Chunk text with configurable overlap.
+- Generate embeddings with Sentence Transformers and store vectors in ChromaDB.
+- Retrieve relevant passages and generate evidence-grounded answers with source labels.
+- Provide a FastAPI API, lightweight Streamlit UI, basic metrics, and structured logs.
+- Run a baseline retrieval evaluation against a small JSONL test set.
 
-## Development
-Implementation is developed in small, testable milestones. See `docs/architecture.md` as the architecture notes are added.
+## Quick start
+
+Python 3.11 or 3.12 is recommended.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` in `.env` to an approved OpenAI-compatible chat API provider. Never commit `.env` or secrets. The embedding model is downloaded on first use.
+
+Run the API in one terminal:
+
+```bash
+uvicorn app.api:app --reload
+```
+
+Run the UI in another terminal:
+
+```bash
+streamlit run app/ui.py
+```
+
+Open the Streamlit URL, upload documents, click **Index documents**, then ask questions. The sample policy at `data/sample_policy.txt` can be used for a quick demo.
+
+## API
+- `GET /health` — health check.
+- `GET /metrics` — basic in-process counters and average query latency.
+- `POST /ingest` — multipart upload using one or more `files` fields.
+- `POST /query` — JSON body such as `{"question":"What is the policy?","top_k":5}`.
+
+FastAPI's interactive API docs are available at `/docs` while the server is running.
+
+## Tests and evaluation
+
+Run unit tests:
+
+```bash
+pytest -q
+```
+
+For the evaluation runner, first start the API, index `data/sample_policy.txt` through the UI or API, then run:
+
+```bash
+python -m eval.run_eval
+```
+
+Update `eval/questions.jsonl` to reflect the documents used in your evaluation. The baseline measures expected-source retrieval hit rate; it does not independently prove answer faithfulness or citation correctness.
+
+## Architecture and limitations
+See [`docs/architecture.md`](docs/architecture.md). This is an MVP, not production-ready enterprise software. Before real deployment, add authentication, document-level access control, tenant isolation, rate limiting, durable metrics, OCR where needed, stronger adversarial tests, and an approved data-handling policy. CSV is indexed row-wise; use SQL/tool-based execution for exact structured analytics.
