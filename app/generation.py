@@ -1,4 +1,3 @@
-from openai import OpenAI
 from .config import LLM_BASE_URL, LLM_API_KEY, LLM_MODEL
 
 SYSTEM_PROMPT = """You are an enterprise knowledge assistant.
@@ -24,6 +23,9 @@ def generate_answer(question: str, hits: list[dict]) -> str:
             location.append(f"row {metadata['row']}")
         suffix = f", {', '.join(location)}" if location else ''
         evidence.append(f"[S{index}] Source: {metadata.get('source', 'unknown')}{suffix}\n{hit['text']}")
+    # Import the provider SDK only when a live generation request is made.
+    from openai import OpenAI
+
     client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
     response = client.chat.completions.create(
         model=LLM_MODEL, temperature=0.1,
