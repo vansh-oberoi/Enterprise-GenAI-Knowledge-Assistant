@@ -22,11 +22,16 @@ def ingest_documents(files: list[tuple[str, bytes]]) -> dict:
     logger.info('ingestion_complete files=%d chunks=%d', len(files), total)
     return {'files': file_results, 'total_chunks_indexed': total}
 
+def retrieve_evidence(question: str, top_k: int = TOP_K) -> list[dict]:
+    """Return ranked retrieved passages without invoking the language model."""
+    return get_store().search(question, top_k=top_k)
+
+
 def answer_question(question: str, top_k: int = TOP_K) -> dict:
     started = time.perf_counter()
     METRICS['queries'] += 1
     try:
-        hits = get_store().search(question, top_k=top_k)
+        hits = retrieve_evidence(question, top_k=top_k)
         answer = generate_answer(question, hits)
         sources = []
         for index, hit in enumerate(hits, start=1):
